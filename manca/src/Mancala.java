@@ -146,45 +146,50 @@ public class Mancala {
 
 
 
-    public void saveGame(String fileName, int hintsUsed, int maxHints) throws IOException {
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter(fileName))) {
-            // Sauvegarder le plateau
-            for (int i = 0; i < board.length; i++) {
-                writer.write(board[i] + " ");
-            }
-            writer.newLine();
+    public void saveGame(String filename, int hintsUsedPlayer1, int hintsUsedPlayer2, int maxHints) throws IOException {
+        FileWriter writer = new FileWriter(filename);
 
-            // Sauvegarder le tour actuel
-            writer.write(isPlayerTurn + "\n");
-
-            // Sauvegarder le nombre d'aides utilisées et maximales
-            writer.write(hintsUsed + " " + maxHints + "\n");
+        // Sauvegarder l'état du plateau
+        for (int i = 0; i < board.length; i++) {
+            writer.write(board[i] + " ");
         }
-        System.out.println("La partie a été sauvegardée dans le fichier " + fileName);
+        writer.write("\n");
+
+        // Sauvegarder les aides et le nombre maximal d'aides
+        writer.write(hintsUsedPlayer1 + " " + hintsUsedPlayer2 + " " + maxHints + "\n");
+
+        // Sauvegarder l'état du joueur actif
+        writer.write((isPlayerTurn ? "1" : "0") + "\n");
+
+        writer.close();
     }
 
 
-    public int[] loadGame(String fileName) throws IOException {
-        try (BufferedReader reader = new BufferedReader(new FileReader(fileName))) {
-            // Charger le plateau
-            String[] boardData = reader.readLine().split(" ");
-            for (int i = 0; i < board.length; i++) {
-                board[i] = Integer.parseInt(boardData[i]);
-            }
+    public int[] loadGame(String filename) throws IOException {
+        BufferedReader reader = new BufferedReader(new FileReader(filename));
 
-            // Charger le tour actuel
-            isPlayerTurn = Boolean.parseBoolean(reader.readLine());
-
-            // Charger les informations sur les aides
-            String[] hintData = reader.readLine().split(" ");
-            int[] hints = new int[2];
-            hints[0] = Integer.parseInt(hintData[0]); // Aides utilisées
-            hints[1] = Integer.parseInt(hintData[1]); // Aides maximales
-
-            System.out.println("La partie a été chargée depuis le fichier " + fileName);
-            return hints; // Retourne les informations des aides
+        // Charger l'état du plateau
+        String[] boardState = reader.readLine().split(" ");
+        for (int i = 0; i < boardState.length; i++) {
+            board[i] = Integer.parseInt(boardState[i]);
         }
+
+        // Charger les aides et le nombre maximal d'aides
+        String[] hintsState = reader.readLine().split(" ");
+        int hintsUsedPlayer1 = Integer.parseInt(hintsState[0]);
+        int hintsUsedPlayer2 = Integer.parseInt(hintsState[1]);
+        int maxHints = Integer.parseInt(hintsState[2]);
+
+        // Charger l'état du joueur actif
+        isPlayerTurn = reader.readLine().equals("1");
+
+        reader.close();
+
+        return new int[]{hintsUsedPlayer1, hintsUsedPlayer2, maxHints};
     }
 
 
 }
+
+
+
