@@ -84,7 +84,7 @@ public class MancalaGame {
 
                 if (playerMove == -1) {
                     if (hintsUsedPlayer1 < maxHints) {
-                        int hint = ai.getBestMove(game.getBoard(), 8);
+                        int hint = ai.getBestMove(game.getBoard(), true,5);
                         System.out.println("Conseil: jouez le trou " + hint);
                         hintsUsedPlayer1++;
                         System.out.println("il vous reste " + (maxHints - hintsUsedPlayer1) + " aide(s).");
@@ -102,7 +102,7 @@ public class MancalaGame {
 
                 if (playerMove == -1) {
                     if (hintsUsedPlayer2 < maxHints) {
-                        int hint = ai.getBestMove(game.getBoard(), 8);
+                        int hint = ai.getBestMove(game.getBoard(), false,5);
                         System.out.println("Conseil : jouez le trou " + hint);
                         hintsUsedPlayer2++;
                         System.out.println("Il vous reste " + (maxHints - hintsUsedPlayer2) + " aide(s).");
@@ -117,7 +117,7 @@ public class MancalaGame {
 
             } else { // Mode Humain vs AI
                 System.out.println("C'est le tour de l'AI...");
-                int bestMove = ai.getBestMove(game.getBoard(), aiDepth);
+                int bestMove = ai.getBestMove(game.getBoard(),false ,aiDepth);
                 System.out.println("L'AI joue le trou : " + bestMove);
                 game.makeMove(bestMove,false);
             }

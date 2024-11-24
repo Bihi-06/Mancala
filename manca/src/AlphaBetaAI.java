@@ -5,48 +5,69 @@ import java.util.List;
 public class AlphaBetaAI {
 
     // Fonction principale de l'algorithme Alpha-Beta
-    public int alphaBeta(int[] board, int depth, int alpha, int beta, boolean isMaximizingPlayer) {
+    private int alphaBeta(int[] board, int depth, int alpha, int beta, boolean isMaximizingPlayer) {
         if (depth == 0 || isGameOver(board)) {
-            return evaluate(board); // Évalue l'état du plateau
+            return evaluate(board, isMaximizingPlayer); // Heuristique d'évaluation
         }
+
+        int start = isMaximizingPlayer ? 0 : 7;
+        int end = isMaximizingPlayer ? 5 : 12;
 
         if (isMaximizingPlayer) {
             int maxEval = Integer.MIN_VALUE;
-            for (int move : getPossibleMoves(board, false)) {
-                MoveResult result = makeMove(board, move, false);
-                int eval;
-                if (result.isExtraTurn) {
-                    eval = alphaBeta(result.board, depth - 1, alpha, beta, true); // L'IA rejoue
-                } else {
-                    eval = alphaBeta(result.board, depth - 1, alpha, beta, false); // Tour du joueur
+            for (int i = start; i <= end; i++) {
+                if (board[i] > 0) {
+                    int[] newBoard = board.clone();
+                    makeMove(newBoard, i, true);
+                    int eval = alphaBeta(newBoard, depth - 1, alpha, beta, false);
+                    maxEval = Math.max(maxEval, eval);
+                    alpha = Math.max(alpha, eval);
+                    if (beta <= alpha) break; // Coupure Alpha-Beta
                 }
-                maxEval = Math.max(maxEval, eval);
-                alpha = Math.max(alpha, eval);
-                if (beta <= alpha) break; // Élagage
             }
             return maxEval;
         } else {
             int minEval = Integer.MAX_VALUE;
-            for (int move : getPossibleMoves(board, true)) {
-                MoveResult result = makeMove(board, move, true);
-                int eval;
-                if (result.isExtraTurn) {
-                    eval = alphaBeta(result.board, depth - 1, alpha, beta, false); // Le joueur rejoue
-                } else {
-                    eval = alphaBeta(result.board, depth - 1, alpha, beta, true); // Tour de l'IA
+            for (int i = start; i <= end; i++) {
+                if (board[i] > 0) {
+                    int[] newBoard = board.clone();
+                    makeMove(newBoard, i, false);
+                    int eval = alphaBeta(newBoard, depth - 1, alpha, beta, true);
+                    minEval = Math.min(minEval, eval);
+                    beta = Math.min(beta, eval);
+                    if (beta <= alpha) break; // Coupure Alpha-Beta
                 }
-                minEval = Math.min(minEval, eval);
-                beta = Math.min(beta, eval);
-                if (beta <= alpha) break; // Élagage
             }
             return minEval;
         }
-
     }
 
     // Fonction d'évaluation : Différence des graines dans les magasins
-    private int evaluate(int[] board) {
-        return board[13] - board[6]; // IA (index 13) - Joueur (index 6)
+    private int evaluate(int[] board, boolean isPlayer1) {
+        int player1Store = board[6]; // Grenier du joueur 1
+        int player2Store = board[13]; // Grenier du joueur 2
+
+        // Somme des graines sur les côtés respectifs
+        int player1Side = 0;
+        int player2Side = 0;
+
+        for (int i = 0; i < 6; i++) {
+            player1Side += board[i]; // Trous du joueur 1
+        }
+        for (int i = 7; i < 13; i++) {
+            player2Side += board[i]; // Trous du joueur 2
+        }
+
+        // Évaluation différenciée pour chaque joueur
+        if (isPlayer1) {
+            return (player1Store - player2Store) // Avantage des greniers
+                    + player1Side               // Graines restantes pour Joueur 1
+                    - player2Side;              // Graines restantes pour Joueur 2
+        } else {
+            return (player2Store - player1Store) // Avantage des greniers
+                    + player2Side               // Graines restantes pour Joueur 2
+                    - player1Side;              // Graines restantes pour Joueur 1
+        }
     }
 
     // Vérifie si la partie est terminée
@@ -134,21 +155,35 @@ public class AlphaBetaAI {
 
 
     // Trouve le meilleur mouvement pour l'IA
-    public int getBestMove(int[] board, int depth) {
-        int bestMove = -1;
-        int maxEval = Integer.MIN_VALUE;
+    public int getBestMove(int[] board, boolean isPlayer1, int depth) {
+        int start = isPlayer1 ? 0 : 7;
+        int end = isPlayer1 ? 5 : 12;
 
-        // Pass `true` for isAI since this is the AI's turn
-        for (int move : getPossibleMoves(board, true)) {
-            MoveResult result = makeMove(board, move, true);
-            int eval = alphaBeta(result.board, depth - 1, Integer.MIN_VALUE, Integer.MAX_VALUE, !result.isExtraTurn);
-            if (eval > maxEval) {
-                maxEval = eval;
-                bestMove = move;
+        int bestMove = -1;
+        int bestValue = isPlayer1 ? Integer.MIN_VALUE : Integer.MAX_VALUE;
+
+        for (int i = start; i <= end; i++) {
+            if (board[i] > 0) { // Vérifie que le trou n'est pas vide
+                int[] newBoard = board.clone(); // Clone l'état du plateau
+                makeMove(newBoard, i, isPlayer1); // Simule le coup
+
+                // Évalue le coup avec Alpha-Beta
+                int value = alphaBeta(newBoard, depth - 1, Integer.MIN_VALUE, Integer.MAX_VALUE, !isPlayer1);
+
+                // Mise à jour du meilleur mouvement selon le joueur
+                if (isPlayer1 && value > bestValue) {
+                    bestValue = value;
+                    bestMove = i;
+                } else if (!isPlayer1 && value < bestValue) {
+                    bestValue = value;
+                    bestMove = i;
+                }
             }
         }
+
         return bestMove;
     }
+
 
 }
 
